@@ -5,6 +5,7 @@ import edu.wisc.cs.sdn.vnet.Device;
 import edu.wisc.cs.sdn.vnet.DumpFile;
 import edu.wisc.cs.sdn.vnet.Iface;
 
+import java.io.Console;
 import java.util.Arrays;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -34,19 +35,29 @@ public class Switch extends Device
 	{
 		super(host,logfile);
 		switchTable = new ConcurrentHashMap<String, SwitchTableRow>();
-		rowChecker = new ExpirationChecker();
+		rowChecker = new ExpirationChecker(switchTable);
 		rowChecker.start();
 	}
 
 	// Creates a thread that checks the table for expired rows once per second.
 	private class ExpirationChecker extends Thread{
 
+		private ConcurrentHashMap<String, SwitchTableRow> switchTableReference;
+		public ExpirationChecker(ConcurrentHashMap<String, SwitchTableRow> reference){
+			this.switchTableReference = reference;
+		}
+
 		public void run(){
 			while(true){
 				try{
 					Thread.sleep(1000);
 					// Logic
-
+					for(String ifaceKey : this.switchTableReference.keySet()){
+						if(System.currentTimeMillis() - switchTableReference.get(ifaceKey).getTTL() > 15000){
+							switchTableReference.remove(ifaceKey);
+							System.out.println("DEBUG: MacAddress " +ifaceKey+ " timed out of switchtable.");
+						}
+					}
 				} catch(Exception e){
 					System.out.println(e.getMessage());
 				}
@@ -99,6 +110,7 @@ public class Switch extends Device
 			if(!switchTable.containsKey(sourceMacAddr)){
 				// if MacAddress is not in table, add it
 				switchTable.put(sourceMacAddr, new SwitchTableRow(inIface, System.currentTimeMillis()));
+				System.out.println("Source " +sourceMacAddr+ " added to table with interface " +inIface.getName());
 			}else{
 				// if source MacAddress is in table, refresh TTL
 				switchTable.get(sourceMacAddr).setTTL(System.currentTimeMillis());
@@ -108,15 +120,18 @@ public class Switch extends Device
 			if(switchTable.containsKey(destMacAddr)){
 				// if match found, send the packet
 				this.sendPacket(etherPacket, switchTable.get(destMacAddr).getInterfaceName());
+				System.out.println("DEBUG: Sending packet from " +sourceMacAddr+ " to " +destMacAddr);
 			}
 			else {
 				// if no match is found, flood all interfaces except the source
+				System.out.println("DEBUG: No dest match found, Flooding");
 				for(String ifaceKey : this.interfaces.keySet()){
 					if(ifaceKey.equals(inIface.getName())){
 						// if key matches 
 						continue;
 					}else{
 						this.sendPacket(etherPacket, this.interfaces.get(ifaceKey));
+						System.out.println("DEBUG: Sending packet from " +sourceMacAddr+ " to " +destMacAddr);
 					}
 				}
 			}
