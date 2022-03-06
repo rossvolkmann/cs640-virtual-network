@@ -84,8 +84,9 @@ public class Router extends Device
 				etherPacket.toString().replace("\n", "\n\t"));
 		
 		// if NOT IPv4 packet, drop packet
-		if(etherPacket.getEtherType() != 0x0800){ // refactor this later
-			System.out.println("DEBUG: incoming packet was not type IPv4.  Dropping from " +this.getHost());
+		if(etherPacket.getEtherType() != Ethernet.TYPE_IPv4){ // refactor this later
+			System.out.println("DEBUG: incoming packet was not type IPv4.\n"
+			+"Was type " +etherPacket.getEtherType()+ "  Dropping from " +this.getHost());
 			return;
 		}
 		// confirm the checksum and drop if invalid
