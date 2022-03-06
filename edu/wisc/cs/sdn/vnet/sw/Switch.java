@@ -55,7 +55,7 @@ public class Switch extends Device
 					for(String ifaceKey : this.switchTableReference.keySet()){
 						if(System.currentTimeMillis() - switchTableReference.get(ifaceKey).getTTL() > 15000){
 							switchTableReference.remove(ifaceKey);
-							System.out.println("DEBUG: MacAddress " +ifaceKey+ " timed out of switchtable.");
+							//System.out.println("DEBUG: MacAddress " +ifaceKey+ " timed out of switchtable.");
 						}
 					}
 				} catch(Exception e){
@@ -110,7 +110,7 @@ public class Switch extends Device
 			if(!switchTable.containsKey(sourceMacAddr)){
 				// if MacAddress is not in table, add it
 				switchTable.put(sourceMacAddr, new SwitchTableRow(inIface, System.currentTimeMillis()));
-				System.out.println("Source " +sourceMacAddr+ " added to table with interface " +inIface.getName());
+				//System.out.println("DEBUG: Source " +sourceMacAddr+ " added to table with interface " +inIface.getName());
 			}else{
 				// if source MacAddress is in table, refresh TTL
 				switchTable.get(sourceMacAddr).setTTL(System.currentTimeMillis());
@@ -120,18 +120,18 @@ public class Switch extends Device
 			if(switchTable.containsKey(destMacAddr)){
 				// if match found, send the packet
 				this.sendPacket(etherPacket, switchTable.get(destMacAddr).getInterfaceName());
-				System.out.println("DEBUG: Sending packet from " +sourceMacAddr+ " to " +destMacAddr);
+				//System.out.println("DEBUG: Sending packet from " +sourceMacAddr+ " to " +destMacAddr);
 			}
 			else {
 				// if no match is found, flood all interfaces except the source
-				System.out.println("DEBUG: No dest match found, Flooding");
+				//System.out.println("DEBUG: No dest match found, Flooding");
 				for(String ifaceKey : this.interfaces.keySet()){
 					if(ifaceKey.equals(inIface.getName())){
 						// if key matches 
 						continue;
 					}else{
 						this.sendPacket(etherPacket, this.interfaces.get(ifaceKey));
-						System.out.println("DEBUG: Sending packet from " +sourceMacAddr+ " to " +destMacAddr);
+						//System.out.println("DEBUG: Sending packet from " +sourceMacAddr+ " to interface: " +ifaceKey);
 					}
 				}
 			}
