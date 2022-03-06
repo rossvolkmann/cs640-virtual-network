@@ -42,8 +42,14 @@ public class RouteTable
 			for(RouteEntry entry : entries){
 				int maskedIP = ip & entry.getMaskAddress();// apply mask to input ip
 				int maskedDestination = entry.getDestinationAddress() & entry.getMaskAddress();// apply mask to destination ip
+				System.out.println("DEBUG: maskedIP is " +maskedIP+ " maskedDestination is " +maskedDestination);
 				if(maskedIP == maskedDestination){// compare both masked values
+					System.out.println("Match found in rout table, checking for longestMatchPrefix");
+					System.out.println("Raw mask address" +entry.getMaskAddress());
+					System.out.println("Current longestMatchPrefix");
+					System.out.println("Comparison result:" +Integer.compareUnsigned(entry.getMaskAddress(), longestMatchPrefix));
 					if((Integer.compareUnsigned(entry.getMaskAddress(), longestMatchPrefix) > 0)){ // Integer.compareUnsigned()
+						
 						bestMatch = entry;// only assign match if this match has longest prefix
 						longestMatchPrefix = entry.getMaskAddress(); //update longestMatchPrefix
 					}
