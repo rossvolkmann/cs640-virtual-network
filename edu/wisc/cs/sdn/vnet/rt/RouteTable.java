@@ -46,9 +46,9 @@ public class RouteTable
 				if(maskedIP == maskedDestination){// compare both masked values
 					System.out.println("Match found in rout table, checking for longestMatchPrefix");
 					System.out.println("Raw mask address" +entry.getMaskAddress());
-					System.out.println("Current longestMatchPrefix");
+					System.out.println("Current longestMatchPrefix" +longestMatchPrefix);
 					System.out.println("Comparison result:" +Integer.compareUnsigned(entry.getMaskAddress(), longestMatchPrefix));
-					if((Integer.compareUnsigned(entry.getMaskAddress(), longestMatchPrefix) > 0)){ // Integer.compareUnsigned()
+					if((Integer.compareUnsigned(entry.getMaskAddress(), longestMatchPrefix) < 0)){ // Integer.compareUnsigned()
 						
 						bestMatch = entry;// only assign match if this match has longest prefix
 						longestMatchPrefix = entry.getMaskAddress(); //update longestMatchPrefix
