@@ -37,12 +37,21 @@ public class RouteTable
 	{
 		synchronized(this.entries)
 		{
-			/*****************************************************************/
-			/* TODO: Find the route entry with the longest prefix match	  */
-			
-			return null;
-			
-			/*****************************************************************/
+			RouteEntry bestMatch = null;
+			int longestMatchPrefix = -1;
+			for(RouteEntry entry : entries){
+				int maskedIP = ip & entry.getMaskAddress();// apply mask to input ip
+				int maskedDestination = entry.getDestinationAddress() & entry.getMaskAddress();// apply mask to destination ip
+				if(maskedIP == maskedDestination){// compare both masked values
+					if((Integer.compareUnsigned(entry.getMaskAddress(), longestMatchPrefix) > 0)){ // Integer.compareUnsigned()
+						bestMatch = entry;// only assign match if this match has longest prefix
+						longestMatchPrefix = entry.getMaskAddress(); //update longestMatchPrefix
+					}
+				}
+			}
+
+			//note: bestMatch can be null.  It's not lookup()'s job to determine a default interface
+			return bestMatch;
 		}
 	}
 	
