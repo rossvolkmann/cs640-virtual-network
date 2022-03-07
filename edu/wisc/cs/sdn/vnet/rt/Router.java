@@ -132,8 +132,7 @@ public class Router extends Device
 		
 		System.out.println("DEBUG: gateWay is " +gateway);
 		System.out.println("DEBUG: Nexthop is " +nextHop);
-		// alter src and dst of incoming Etherpacket
-		// use ARP to figure out dst
+		
 		ArpEntry lookupArpEntry = this.arpCache.lookup(nextHop);
 		System.out.println("Lookup arp entry" +lookupArpEntry);
 		MACAddress lookupMAC = lookupArpEntry.getMac();
@@ -151,11 +150,11 @@ public class Router extends Device
 		MACAddress sourceMAC = targetInterface.getMacAddress();
 		System.out.println("Source MAC " +sourceMAC);
 		
-		if(sourceMAC != null){
+		//if(sourceMAC != null){
 			byte[] sourceMACToBytes = sourceMAC.toBytes();
 			System.out.println("Source MACToBytes " +sourceMACToBytes);
 			etherPacket.setSourceMACAddress(sourceMACToBytes); // interface that this is sending out on
-		}
+		//}
 		
 		etherPacket.setDestinationMACAddress(destinationMACAddress); // mac address of target from ARP table
 		this.sendPacket(etherPacket, targetInterface);
