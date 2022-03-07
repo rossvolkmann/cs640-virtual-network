@@ -120,6 +120,7 @@ public class Router extends Device
 		}
 		// get interface
 		Iface targetInterface = match.getInterface();
+		System.out.println("DEBUG: targetInterface is " +targetInterface);
 		int gateway = match.getGatewayAddress();
 		//int nextHop = gateway != 0 ? gateway : packet.getDestinationAddress(); // if gateway == 0, nextHop == gateway, else nextHop == packet destination
 		int nextHop;
