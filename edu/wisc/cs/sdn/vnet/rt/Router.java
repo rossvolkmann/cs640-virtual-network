@@ -6,6 +6,7 @@ import edu.wisc.cs.sdn.vnet.Iface;
 
 import net.floodlightcontroller.packet.Ethernet;
 import net.floodlightcontroller.packet.IPv4;
+import net.floodlightcontroller.packet.MACAddress;
 
 /**
  * @author Aaron Gember-Jacobson and Anubhavnidhi Abhashkumar
@@ -132,7 +133,14 @@ public class Router extends Device
 		System.out.println("DEBUG: Nexthop is " +nextHop);
 		// alter src and dst of incoming Etherpacket
 		// use ARP to figure out dst
-		byte[] destinationMACAddress = this.arpCache.lookup(nextHop).getMac().toBytes(); // may be null ! - threw null pointer exception
+		ArpEntry lookupArpEntry = this.arpCache.lookup(nextHop);
+		System.out.println("Lookup arp entry" +lookupArpEntry);
+		MACAddress lookupMAC = lookupArpEntry.getMac();
+		System.out.println("Lookup MAC address " +lookupMAC);
+		byte[] destinationMACAddress = lookupMAC.toBytes();
+		System.out.println("Destination MAC address" +destinationMACAddress);
+		
+		//byte[] destinationMACAddress = this.arpCache.lookup(nextHop).getMac().toBytes(); // may be null ! - threw null pointer exception
 		
 		if (destinationMACAddress == null){
 			System.out.println("DEBUG: no match found in ARP table, dropping packet from " +this.getHost());
