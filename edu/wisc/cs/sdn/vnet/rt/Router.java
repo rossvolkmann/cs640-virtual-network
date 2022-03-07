@@ -146,7 +146,14 @@ public class Router extends Device
 			System.out.println("DEBUG: no match found in ARP table, dropping packet from " +this.getHost());
 			return; //drop packet
 		}
-		etherPacket.setSourceMACAddress(targetInterface.getMacAddress().toBytes()); // interface that this is sending out on
+
+		// set source MAC address
+		MACAddress sourceMAC = targetInterface.getMacAddress();
+		System.out.println("Source MAC " +sourceMAC);
+		byte[] sourceMACToBytes = sourceMAC.toBytes();
+		System.out.println("Source MACToBytes " +sourceMACToBytes);
+
+		etherPacket.setSourceMACAddress(sourceMACToBytes); // interface that this is sending out on
 		etherPacket.setDestinationMACAddress(destinationMACAddress); // mac address of target from ARP table
 		this.sendPacket(etherPacket, targetInterface);
 		System.out.println("DEBUG: sending packet " +etherPacket+ " on interface " +targetInterface);
