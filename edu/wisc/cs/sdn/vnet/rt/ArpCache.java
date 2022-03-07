@@ -42,7 +42,9 @@ public class ArpCache
 	 * @return the IP->MAC mapping from the cache; null if none exists 
 	 */
 	public ArpEntry lookup(int ip)
-	{ return this.entries.get(ip); }
+	{ 	System.out.println("DEBUG: lookup()");
+		System.out.println("DEBUG: " +this.entries.get(ip));
+		return this.entries.get(ip); }
 	
 	/**
 	 * Populate the ARP cache from a file.

@@ -120,12 +120,19 @@ public class Router extends Device
 		// get interface
 		Iface targetInterface = match.getInterface();
 		int gateway = match.getGatewayAddress();
-		int nextHop = gateway != 0 ? gateway : packet.getDestinationAddress(); // if gateway == 0, nextHop == gateway, else nextHop == packet destination
+		//int nextHop = gateway != 0 ? gateway : packet.getDestinationAddress(); // if gateway == 0, nextHop == gateway, else nextHop == packet destination
+		int nextHop;
+		if(gateway == 0){ // if gateway is 0 send it home
+			nextHop = packet.getDestinationAddress();
+		}else{ // send packet to next gateway
+			nextHop = gateway;
+		}
+		
 		System.out.println("DEBUG: gateWay is " +gateway);
 		System.out.println("DEBUG: Nexthop is " +nextHop);
 		// alter src and dst of incoming Etherpacket
 		// use ARP to figure out dst
-		byte[] destinationMACAddress = arpCache.lookup(nextHop).getMac().toBytes(); // may be null ! - threw null pointer exception
+		byte[] destinationMACAddress = this.arpCache.lookup(nextHop).getMac().toBytes(); // may be null ! - threw null pointer exception
 		
 		if (destinationMACAddress == null){
 			System.out.println("DEBUG: no match found in ARP table, dropping packet from " +this.getHost());
