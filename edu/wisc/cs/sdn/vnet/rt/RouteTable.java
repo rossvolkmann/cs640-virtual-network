@@ -48,8 +48,9 @@ public class RouteTable
 					System.out.println("DEBUG: Match found in rout table, checking for longestMatchPrefix");
 					System.out.println("DEBUG: Mask address" +entryPrefix);
 					System.out.println("DEBUG: Current longestMatchPrefix" +longestMatchPrefix);
-					System.out.println("DEBUG: Comparison result:" +Integer.compareUnsigned(entry.getMaskAddress(), longestMatchPrefix));
+					System.out.println("DEBUG: Comparison result:" +(Long.compare(entryPrefix, longestMatchPrefix) > 0));
 					if((Long.compare(entryPrefix, longestMatchPrefix) > 0)){ // Integer.compareUnsigned()
+						System.out.println("Assigning new bestMatch to " +entry);
 						bestMatch = entry;// only assign match if this match has longest prefix
 						longestMatchPrefix = entry.getMaskAddress(); //update longestMatchPrefix
 					}
