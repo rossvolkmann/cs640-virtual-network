@@ -43,14 +43,14 @@ public class RouteTable
 				int maskedIP = ip & entry.getMaskAddress();// apply mask to input ip
 				int maskedDestination = entry.getDestinationAddress() & entry.getMaskAddress();// apply mask to destination ip
 				long entryPrefix = Integer.toUnsignedLong(entry.getMaskAddress());
-				System.out.println("DEBUG: maskedIP is " +maskedIP+ " maskedDestination is " +maskedDestination);
+				//System.out.println("DEBUG: maskedIP is " +maskedIP+ " maskedDestination is " +maskedDestination);
 				if(maskedIP == maskedDestination){// compare both masked values
-					System.out.println("DEBUG: Match found in rout table, checking for longestMatchPrefix");
-					System.out.println("DEBUG: Mask address" +entryPrefix);
-					System.out.println("DEBUG: Current longestMatchPrefix" +longestMatchPrefix);
-					System.out.println("DEBUG: Comparison result:" +(Long.compare(entryPrefix, longestMatchPrefix) > 0));
+					//System.out.println("DEBUG: Match found in rout table, checking for longestMatchPrefix");
+					//System.out.println("DEBUG: Mask address" +entryPrefix);
+					//System.out.println("DEBUG: Current longestMatchPrefix" +longestMatchPrefix);
+					//System.out.println("DEBUG: Comparison result:" +(Long.compare(entryPrefix, longestMatchPrefix) > 0));
 					if((Long.compare(entryPrefix, longestMatchPrefix) > 0)){ // if prefix is longer than last prefix match
-						System.out.println("DEBUG: Assigning new bestMatch to " +entry);
+						//System.out.println("DEBUG: Assigning new bestMatch to " +entry);
 						bestMatch = entry;// only assign match if this match has longest prefix
 						longestMatchPrefix = entry.getMaskAddress(); //update longestMatchPrefix
 					}

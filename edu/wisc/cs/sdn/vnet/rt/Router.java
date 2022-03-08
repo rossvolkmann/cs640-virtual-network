@@ -86,8 +86,8 @@ public class Router extends Device
 		
 		// if NOT IPv4 packet, drop packet
 		if(etherPacket.getEtherType() != Ethernet.TYPE_IPv4){ // refactor this later
-			System.out.println("DEBUG: incoming packet was not type IPv4.\n"
-			+"Was type " +etherPacket.getEtherType()+ "  Dropping from " +this.getHost());
+			//System.out.println("DEBUG: incoming packet was not type IPv4.\n"
+			//+"Was type " +etherPacket.getEtherType()+ "  Dropping from " +this.getHost());
 			return;
 		}
 		// confirm the checksum and drop if invalid
@@ -97,14 +97,14 @@ public class Router extends Device
 		packet.resetChecksum();
 		packet.serialize();
 		if(packetChecksum != packet.getChecksum()){
-			System.out.println("DEBUG: packet dropped due to bad checksum at " +this.getHost());
+			//System.out.println("DEBUG: packet dropped due to bad checksum at " +this.getHost());
 			return;
 		}
 		// verify the TTL, decrement TTL and drop if TTL expired
 		byte TTL = packet.getTtl();
 		packet.setTtl((byte)(TTL - 1));
 		if(TTL <= 1){ // drop packet
-			System.out.println("DEBUG: packet dropped due to expired TTL at " +this.getHost());
+			//System.out.println("DEBUG: packet dropped due to expired TTL at " +this.getHost());
 			return;
 		}
 		//resetChecksum to avoid checksum issues at next router
@@ -115,7 +115,7 @@ public class Router extends Device
 		// Lookup the correct destination in the routeTable
 		RouteEntry match = routeTable.lookup(packet.getDestinationAddress()); //note - match can be null
 		if(match == null){
-			System.out.println("DEBUG: no match found in routeTable, dropping packet from " +this.getHost());
+			//System.out.println("DEBUG: no match found in routeTable, dropping packet from " +this.getHost());
 			return; // no default routes in static rout tables, so drop packet
 		}
 
@@ -124,10 +124,10 @@ public class Router extends Device
 		String sourceInterfaceName = match.getInterface().getName();
 		Iface sourceInterface = this.interfaces.get(sourceInterfaceName);
 		if(sourceInterface.equals(inIface)){
-			System.out.println("DEBUG: outbound source interface is equal to incoming packet interface.  Dropping packet from " +this.getHost());
+			//System.out.println("DEBUG: outbound source interface is equal to incoming packet interface.  Dropping packet from " +this.getHost());
 			return;
 		}
-		System.out.println("DEBUG: targetInterface is " +sourceInterface);
+		//System.out.println("DEBUG: targetInterface is " +sourceInterface);
 
 		//Check if destination is directly connected to Router or if nextHop should be to another gateway.  
 		int gateway = match.getGatewayAddress();
@@ -137,32 +137,32 @@ public class Router extends Device
 		}else{ // send packet to next gateway
 			nextHop = gateway;
 		}
-		System.out.println("DEBUG: gateWay is " +gateway);
-		System.out.println("DEBUG: Nexthop is " +nextHop);
+		//System.out.println("DEBUG: gateWay is " +gateway);
+		//System.out.println("DEBUG: Nexthop is " +nextHop);
 		
 		//Lookup the destination MAC Address for nextHop in the ARP Table
 		MACAddress destinationMAC = this.arpCache.lookup(nextHop).getMac();
-		System.out.println("DEBUG: Lookup arp entry: " +this.arpCache.lookup(nextHop));
-		System.out.println("DEBUG: Destination MAC address: " +destinationMAC);
+		//System.out.println("DEBUG: Lookup arp entry: " +this.arpCache.lookup(nextHop));
+		//System.out.println("DEBUG: Destination MAC address: " +destinationMAC);
 		if (destinationMAC == null){
-			System.out.println("DEBUG: no match found in ARP table, dropping packet from " +this.getHost());
+			//System.out.println("DEBUG: no match found in ARP table, dropping packet from " +this.getHost());
 			return; //drop packet
 		}
 		byte[] destinationMACAddress = destinationMAC.toBytes();
-		System.out.println("DEBUG: Destination MAC address to bytes: " +destinationMACAddress);
+		//System.out.println("DEBUG: Destination MAC address to bytes: " +destinationMACAddress);
 
 		// Extract the sourceMAC from the source interface identified above
 		MACAddress sourceMAC = sourceInterface.getMacAddress();
-		System.out.println("Source MAC " +sourceMAC);
+		//System.out.println("Source MAC " +sourceMAC);
 		
 		if(sourceMAC != null){ // in theory sourceMAC should never be null, but this check guards against POX issues found during testing
 			byte[] sourceMACToBytes = sourceMAC.toBytes();
-			System.out.println("Source MACToBytes " +sourceMACToBytes);
+			//System.out.println("Source MACToBytes " +sourceMACToBytes);
 			etherPacket.setSourceMACAddress(sourceMACToBytes); // edit the etherPacket's sourceMAC
 		}
 		
 		etherPacket.setDestinationMACAddress(destinationMACAddress); // edit the etherPacket's destinationMAC
 		this.sendPacket(etherPacket, sourceInterface); // forward the packet 
-		System.out.println("DEBUG: sending packet " +etherPacket+ " on interface " +sourceInterface);
+		//System.out.println("DEBUG: sending packet " +etherPacket+ " on interface " +sourceInterface);
 	}
 }
