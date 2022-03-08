@@ -1,5 +1,7 @@
 package edu.wisc.cs.sdn.vnet;
 
+import edu.wisc.cs.sdn.vnet.rt.RouteEntry;
+import edu.wisc.cs.sdn.vnet.rt.RouteTable;
 import edu.wisc.cs.sdn.vnet.rt.Router;
 import edu.wisc.cs.sdn.vnet.sw.Switch;
 import edu.wisc.cs.sdn.vnet.vns.Command;

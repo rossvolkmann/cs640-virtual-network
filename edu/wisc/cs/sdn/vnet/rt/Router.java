@@ -118,46 +118,51 @@ public class Router extends Device
 			System.out.println("DEBUG: no match found in routeTable, dropping packet from " +this.getHost());
 			return; // no default routes in static rout tables, so drop packet
 		}
-		// get interface
-		Iface targetInterface = match.getInterface();
-		System.out.println("DEBUG: targetInterface is " +targetInterface);
+
+		// Use routeTable lookup results to get the sourceInterface
+		//Iface targetInterface = match.getInterface(); // get the interface from the route table
+		String sourceInterfaceName = match.getInterface().getName();
+		Iface sourceInterface = this.interfaces.get(sourceInterfaceName);
+		if(sourceInterface.equals(inIface)){
+			System.out.println("DEBUG: outbound source interface is equal to incoming packet interface.  Dropping packet from " +this.getHost());
+			return;
+		}
+		System.out.println("DEBUG: targetInterface is " +sourceInterface);
+
+		//Check if destination is directly connected to Router or if nextHop should be to another gateway.  
 		int gateway = match.getGatewayAddress();
-		//int nextHop = gateway != 0 ? gateway : packet.getDestinationAddress(); // if gateway == 0, nextHop == gateway, else nextHop == packet destination
 		int nextHop;
 		if(gateway == 0){ // if gateway is 0 send it home
 			nextHop = packet.getDestinationAddress();
 		}else{ // send packet to next gateway
 			nextHop = gateway;
 		}
-		
 		System.out.println("DEBUG: gateWay is " +gateway);
 		System.out.println("DEBUG: Nexthop is " +nextHop);
 		
-		ArpEntry lookupArpEntry = this.arpCache.lookup(nextHop);
-		System.out.println("Lookup arp entry" +lookupArpEntry);
-		MACAddress lookupMAC = lookupArpEntry.getMac();
-		System.out.println("Lookup MAC address " +lookupMAC);
-		
-		//byte[] destinationMACAddress = this.arpCache.lookup(nextHop).getMac().toBytes(); // may be null ! - threw null pointer exception
-		if (lookupMAC == null){
+		//Lookup the destination MAC Address for nextHop in the ARP Table
+		MACAddress destinationMAC = this.arpCache.lookup(nextHop).getMac();
+		System.out.println("DEBUG: Lookup arp entry: " +this.arpCache.lookup(nextHop));
+		System.out.println("DEBUG: Destination MAC address: " +destinationMAC);
+		if (destinationMAC == null){
 			System.out.println("DEBUG: no match found in ARP table, dropping packet from " +this.getHost());
 			return; //drop packet
 		}
-		byte[] destinationMACAddress = lookupMAC.toBytes();
-		System.out.println("Destination MAC address" +destinationMACAddress);
+		byte[] destinationMACAddress = destinationMAC.toBytes();
+		System.out.println("DEBUG: Destination MAC address to bytes: " +destinationMACAddress);
 
-		// set source MAC address
-		MACAddress sourceMAC = targetInterface.getMacAddress();
+		// Extract the sourceMAC from the source interface identified above
+		MACAddress sourceMAC = sourceInterface.getMacAddress();
 		System.out.println("Source MAC " +sourceMAC);
 		
-		//if(sourceMAC != null){
+		if(sourceMAC != null){ // in theory sourceMAC should never be null, but this check guards against POX issues found during testing
 			byte[] sourceMACToBytes = sourceMAC.toBytes();
 			System.out.println("Source MACToBytes " +sourceMACToBytes);
-			etherPacket.setSourceMACAddress(sourceMACToBytes); // interface that this is sending out on
-		//}
+			etherPacket.setSourceMACAddress(sourceMACToBytes); // edit the etherPacket's sourceMAC
+		}
 		
-		etherPacket.setDestinationMACAddress(destinationMACAddress); // mac address of target from ARP table
-		this.sendPacket(etherPacket, targetInterface);
-		System.out.println("DEBUG: sending packet " +etherPacket+ " on interface " +targetInterface);
+		etherPacket.setDestinationMACAddress(destinationMACAddress); // edit the etherPacket's destinationMAC
+		this.sendPacket(etherPacket, sourceInterface); // forward the packet 
+		System.out.println("DEBUG: sending packet " +etherPacket+ " on interface " +sourceInterface);
 	}
 }
