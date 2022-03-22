@@ -213,7 +213,7 @@ public class Router extends Device
 		byte ttl = (byte)64;
 		ip.setTtl(ttl);
 		ip.setProtocol(IPv4.PROTOCOL_ICMP);
-		int sourceIPAddress = inIface.getIpAddress(); // set new source as IP address of this router's receiving interface
+		int sourceIPAddress = sourceInterface.getIpAddress(); // set new source as IP address of this router's receiving interface
 		ip.setSourceAddress(sourceIPAddress);
 		int destinationIPAddress = originalIPPacket.getSourceAddress(); // set new destination as original source
 		ip.setDestinationAddress(destinationIPAddress);
@@ -233,7 +233,7 @@ public class Router extends Device
 
 		// send the ICMP packet out
 		System.out.println("DEBUG: Sending ICMP time exceeded packet");
-		this.sendPacket(ether, inIface);
+		this.sendPacket(ether, sourceInterface);
 		
 	} // sendTimeExceededICMP
 }
