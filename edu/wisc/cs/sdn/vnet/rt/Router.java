@@ -227,11 +227,14 @@ public class Router extends Device
 		icmp.setIcmpCode(icmpCode0);
 
 		// populate payload
-		byte[] icmpPayload = new byte[4 + (int)originalIPPacket.getHeaderLength() + 8];
+		int numBytesInHeader = (int)originalIPPacket.getHeaderLength() * 4;
+		System.out.println("DEBUG: number of bytes when doing original method is " +(int)originalIPPacket.getHeaderLength());
+		System.out.println("DEBUG: number of bytes in header is: " +numBytesInHeader);
+		byte[] icmpPayload = new byte[4 + numBytesInHeader + 8];
 		ByteBuffer bb = ByteBuffer.wrap(icmpPayload);
 		byte[] padding = {0,0,0,0};
 		bb.put(padding);
-		bb.put(originalIPPacket.serialize(),0,((int)originalIPPacket.getHeaderLength() + 8));
+		bb.put(originalIPPacket.serialize(),0,numBytesInHeader + 8);
 		data.setData(icmpPayload); // this was missing with last issue
 
 		// send the ICMP packet out
