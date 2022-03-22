@@ -16,7 +16,7 @@ public class Switch extends Device
 {	
 	// Note: a real switch has a MAC address, but for the purposes of this assignment
 	// the switch MAC adddress is not relevant.  
-	// this comment testing assign 3 git utility
+	// This comment testing assign3 git compatibility
 
 	/**
 	 * switchTable is a ConcurrentHashMap that uses the string representation
