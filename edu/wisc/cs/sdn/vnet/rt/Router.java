@@ -173,6 +173,7 @@ public class Router extends Device
 	} // handlePacket
 
 	private void sendTimeExceededICMP(Ethernet etherPacket, Iface inIface){
+		System.out.println("DEBUG: inIface is " +inIface.getName() + " " +inIface.getMacAddress()+ " " +inIface.getIpAddress());
 		// create an ICMP packet and nest it inside of an IPv4 + Ethernet packet
 		Ethernet ether = new Ethernet();
 		IPv4 ip = new IPv4();
@@ -191,6 +192,7 @@ public class Router extends Device
 		}
 		String sourceInterfaceName = originMatch.getInterface().getName();
 		Iface sourceInterface = this.interfaces.get(sourceInterfaceName);
+		System.out.println("DEBUG: sourceInterface is " +sourceInterface.getName() + " " +sourceInterface.getMacAddress()+ " " +sourceInterface.getIpAddress());
 
 		// populate the Ethernet header
 		ether.setEtherType(Ethernet.TYPE_IPv4);
