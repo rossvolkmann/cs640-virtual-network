@@ -184,16 +184,19 @@ public class Router extends Device
 
 		IPv4 originalIPPacket = (IPv4)etherPacket.getPayload(); // original incoming IPv4 Packet
 
-		// populate the Ethernet header
-		ether.setEtherType(Ethernet.TYPE_IPv4);
-		// set the Ethernet source as the interface packet was received on
-		byte[] sourceMac = inIface.getMacAddress().toBytes();
-		ether.setSourceMACAddress(sourceMac);
 		// set the Ethernet destination as the MAC address of the nexthop on the way back to packet origin
 		RouteEntry originMatch = routeTable.lookup(originalIPPacket.getSourceAddress());
 		if(originMatch == null){
 			return; // this should never happen, but let's be safe
 		}
+		String sourceInterfaceName = originMatch.getInterface().getName();
+		Iface sourceInterface = this.interfaces.get(sourceInterfaceName);
+
+		// populate the Ethernet header
+		ether.setEtherType(Ethernet.TYPE_IPv4);
+		// set the Ethernet source as the interface packet was received on
+		byte[] sourceMac = sourceInterface.getMacAddress().toBytes(); // this is throwing a NPE
+		ether.setSourceMACAddress(sourceMac);
 		//Check if destination is directly connected to Router or if nextHop should be to another gateway.  
 		int gateway = originMatch.getGatewayAddress();
 		int nextHop;
