@@ -232,6 +232,7 @@ public class Router extends Device
 		byte[] padding = {0,0,0,0};
 		bb.put(padding);
 		bb.put(originalIPPacket.serialize(),0,((int)originalIPPacket.getHeaderLength() + 8));
+		data.setData(icmpPayload); // this was missing with last issue
 
 		// send the ICMP packet out
 		System.out.println("DEBUG: Sending ICMP time exceeded packet");
