@@ -16,10 +16,12 @@ public class Switch extends Device
 {	
 	// Note: a real switch has a MAC address, but for the purposes of this assignment
 	// the switch MAC adddress is not relevant.  
+	// this comment testing assign 3 git utility
 
 	/**
 	 * switchTable is a ConcurrentHashMap that uses the string representation
 	 * of a MacAddress as its key.  
+	 *  
 	 * 
 	 * The value contains the interface associated with that MacAddress as well
 	 * as the time that table entry was last refreshed.
