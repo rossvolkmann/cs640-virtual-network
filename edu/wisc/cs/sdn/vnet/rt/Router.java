@@ -121,7 +121,8 @@ public class Router extends Device
 		// Lookup the correct destination in the routeTable
 		RouteEntry match = routeTable.lookup(packet.getDestinationAddress()); //note - match can be null
 		if(match == null){
-			//System.out.println("DEBUG: no match found in routeTable, dropping packet from " +this.getHost());
+			System.out.println("DEBUG: no match found in routeTable, dropping packet from " +this.getHost());
+			sendICMPPacket(etherPacket, inIface, 3, 0);
 			return; // no default routes in static rout tables, so drop packet
 		}
 
@@ -151,7 +152,8 @@ public class Router extends Device
 		//System.out.println("DEBUG: Lookup arp entry: " +this.arpCache.lookup(nextHop));
 		//System.out.println("DEBUG: Destination MAC address: " +destinationMAC);
 		if (destinationMAC == null){
-			//System.out.println("DEBUG: no match found in ARP table, dropping packet from " +this.getHost());
+			System.out.println("DEBUG: no match found in ARP table, dropping packet from " +this.getHost());
+			sendICMPPacket(etherPacket, inIface, 3, 1);
 			return; //drop packet
 		}
 		byte[] destinationMACAddress = destinationMAC.toBytes();
@@ -173,7 +175,7 @@ public class Router extends Device
 	} // handlePacket
 
 	private void sendTimeExceededICMP(Ethernet etherPacket, Iface inIface){
-		System.out.println("DEBUG: inIface is " +inIface.getName() + " " +inIface.getMacAddress()+ " " +inIface.getIpAddress());
+		// System.out.println("DEBUG: inIface is " +inIface.getName() + " " +inIface.getMacAddress()+ " " +inIface.getIpAddress());
 		// create an ICMP packet and nest it inside of an IPv4 + Ethernet packet
 		Ethernet ether = new Ethernet();
 		IPv4 ip = new IPv4();
@@ -192,7 +194,7 @@ public class Router extends Device
 		}
 		String sourceInterfaceName = originMatch.getInterface().getName();
 		Iface sourceInterface = this.interfaces.get(sourceInterfaceName);
-		System.out.println("DEBUG: sourceInterface is " +sourceInterface.getName() + " " +sourceInterface.getMacAddress()+ " " +sourceInterface.getIpAddress());
+		// System.out.println("DEBUG: sourceInterface is " +sourceInterface.getName() + " " +sourceInterface.getMacAddress()+ " " +sourceInterface.getIpAddress());
 
 		// populate the Ethernet header
 		ether.setEtherType(Ethernet.TYPE_IPv4);
@@ -227,9 +229,7 @@ public class Router extends Device
 		icmp.setIcmpCode(icmpCode0);
 
 		// populate payload
-		int numBytesInHeader = (int)originalIPPacket.getHeaderLength() * 4;
-		System.out.println("DEBUG: number of bytes when doing original method is " +(int)originalIPPacket.getHeaderLength());
-		System.out.println("DEBUG: number of bytes in header is: " +numBytesInHeader);
+		int numBytesInHeader = (int)originalIPPacket.getHeaderLength() * 4; // need to multiply by 4 to cast int32 to bytes
 		byte[] icmpPayload = new byte[4 + numBytesInHeader + 8];
 		ByteBuffer bb = ByteBuffer.wrap(icmpPayload);
 		byte[] padding = {0,0,0,0};
@@ -238,8 +238,76 @@ public class Router extends Device
 		data.setData(icmpPayload); // this was missing with last issue
 
 		// send the ICMP packet out
-		System.out.println("DEBUG: Sending ICMP time exceeded packet");
+		// System.out.println("DEBUG: Sending ICMP time exceeded packet");
 		this.sendPacket(ether, sourceInterface);
 		
 	} // sendTimeExceededICMP
+
+	private void sendICMPPacket(Ethernet etherPacket, Iface inIface, int icmpType, int icmpCode){
+		// System.out.println("DEBUG: inIface is " +inIface.getName() + " " +inIface.getMacAddress()+ " " +inIface.getIpAddress());
+		// create an ICMP packet and nest it inside of an IPv4 + Ethernet packet
+		Ethernet ether = new Ethernet();
+		IPv4 ip = new IPv4();
+		ICMP icmp = new ICMP();
+		Data data = new Data();
+		ether.setPayload(ip);
+		ip.setPayload(icmp);
+		icmp.setPayload(data);
+
+		IPv4 originalIPPacket = (IPv4)etherPacket.getPayload(); // original incoming IPv4 Packet
+
+		// set the Ethernet destination as the MAC address of the nexthop on the way back to packet origin
+		RouteEntry originMatch = routeTable.lookup(originalIPPacket.getSourceAddress());
+		if(originMatch == null){
+			return; // this should never happen, but let's be safe
+		}
+		String sourceInterfaceName = originMatch.getInterface().getName();
+		Iface sourceInterface = this.interfaces.get(sourceInterfaceName);
+		// System.out.println("DEBUG: sourceInterface is " +sourceInterface.getName() + " " +sourceInterface.getMacAddress()+ " " +sourceInterface.getIpAddress());
+
+		// populate the Ethernet header
+		ether.setEtherType(Ethernet.TYPE_IPv4);
+		// set the Ethernet source as the interface packet was received on
+		byte[] sourceMac = sourceInterface.getMacAddress().toBytes(); // this is throwing a NPE
+		ether.setSourceMACAddress(sourceMac);
+		//Check if destination is directly connected to Router or if nextHop should be to another gateway.  
+		int gateway = originMatch.getGatewayAddress();
+		int nextHop;
+		if(gateway == 0){ // if gateway is 0 send it home
+			nextHop = originalIPPacket.getSourceAddress();
+		}else{ // send packet to next gateway
+			nextHop = gateway;
+		}
+		MACAddress destinationMAC = this.arpCache.lookup(nextHop).getMac();
+		byte[] destinationMacBytes = destinationMAC.toBytes(); // ??? what is the destination for this packet?
+		ether.setDestinationMACAddress(destinationMacBytes);
+
+		// populate the IP header
+		byte ttl = (byte)64;
+		ip.setTtl(ttl);
+		ip.setProtocol(IPv4.PROTOCOL_ICMP);
+		int sourceIPAddress = sourceInterface.getIpAddress(); // set new source as IP address of this router's receiving interface
+		ip.setSourceAddress(sourceIPAddress);
+		int destinationIPAddress = originalIPPacket.getSourceAddress(); // set new destination as original source
+		ip.setDestinationAddress(destinationIPAddress);
+
+		// populate the ICMP header
+		icmp.setIcmpType((byte)icmpType);
+		icmp.setIcmpCode((byte)icmpCode);
+
+		// populate payload
+		int numBytesInHeader = (int)originalIPPacket.getHeaderLength() * 4; // need to multiply by 4 to cast int32 to bytes
+		byte[] icmpPayload = new byte[4 + numBytesInHeader + 8];
+		ByteBuffer bb = ByteBuffer.wrap(icmpPayload);
+		byte[] padding = {0,0,0,0};
+		bb.put(padding);
+		bb.put(originalIPPacket.serialize(),0,numBytesInHeader + 8);
+		data.setData(icmpPayload); // this was missing with last issue
+
+		// send the ICMP packet out
+		// System.out.println("DEBUG: Sending ICMP time exceeded packet");
+		this.sendPacket(ether, sourceInterface);
+	}
+
+
 }
