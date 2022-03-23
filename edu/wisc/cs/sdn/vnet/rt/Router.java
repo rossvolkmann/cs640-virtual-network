@@ -148,14 +148,15 @@ public class Router extends Device
 		//System.out.println("DEBUG: Nexthop is " +nextHop);
 		
 		//Lookup the destination MAC Address for nextHop in the ARP Table
-		MACAddress destinationMAC = this.arpCache.lookup(nextHop).getMac();
 		//System.out.println("DEBUG: Lookup arp entry: " +this.arpCache.lookup(nextHop));
 		//System.out.println("DEBUG: Destination MAC address: " +destinationMAC);
-		if (destinationMAC == null){
+		ArpEntry destinationArp = this.arpCache.lookup(nextHop);
+		if (destinationArp == null){
 			System.out.println("DEBUG: no match found in ARP table, dropping packet from " +this.getHost());
 			sendICMPPacket(etherPacket, inIface, 3, 1);
 			return; //drop packet
 		}
+		MACAddress destinationMAC = destinationArp.getMac(); // throwing NPE here when given bogus MAC address
 		byte[] destinationMACAddress = destinationMAC.toBytes();
 		//System.out.println("DEBUG: Destination MAC address to bytes: " +destinationMACAddress);
 
