@@ -149,6 +149,12 @@ public class Router extends Device
 
 		// Use routeTable lookup results to get the sourceInterface 
 		// This was my original interpretation of the above.  Is this right?
+		String sourceInterfaceName = match.getInterface().getName();
+		Iface sourceInterface = this.interfaces.get(sourceInterfaceName);
+		if(sourceInterfaceName.equals(inIface.getName())){
+			//System.out.println("DEBUG: outbound source interface is equal to incoming packet interface.  Dropping packet from " +this.getHost());
+			return;
+		}
 		//System.out.println("DEBUG: targetInterface is " +sourceInterface);
 
 		//Check if destination is directly connected to Router or if nextHop should be to another gateway.  
